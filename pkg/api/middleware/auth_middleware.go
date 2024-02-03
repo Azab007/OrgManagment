@@ -28,7 +28,6 @@ func AuthMiddleware() gin.HandlerFunc {
 
 		// Verify the access token
 		email, err := utils.VerifyAccessToken(accessToken)
-		print(email)
 		if err != nil {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid access token"})
 			c.Abort()
