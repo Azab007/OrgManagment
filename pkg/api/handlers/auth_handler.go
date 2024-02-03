@@ -24,7 +24,7 @@ func SignUpHandler(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "User signed up successfully", "user": newUser})
+	c.JSON(http.StatusOK, gin.H{"message": "User signed up successfully"})
 }
 
 func SignInHandler(c *gin.Context) {
@@ -49,7 +49,7 @@ func SignInHandler(c *gin.Context) {
 			return
 		}
 
-		c.JSON(http.StatusOK, gin.H{"access_token": accessToken, "refresh_token": refreshToken})
+		c.JSON(http.StatusOK, gin.H{"message": "Successfully singed in", "access_token": accessToken, "refresh_token": refreshToken})
 	} else {
 		// Authentication failed
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
