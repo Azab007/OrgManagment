@@ -27,7 +27,7 @@ func Connect() {
 		log.Fatal(err)
 	}
 
-	db = client.Database("your_database_name")
+	db = client.Database("OrgManagement")
 
 	fmt.Println("Connected to MongoDB")
 }
