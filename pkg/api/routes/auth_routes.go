@@ -8,7 +8,7 @@ import (
 
 // SetupUserRoutes configures the user-related routes
 func SetupUserRoutes(router *gin.Engine) {
-	userGroup := router.Group("/user")
+	userGroup := router.Group("/")
 	{
 		// Route for user signup
 		userGroup.POST("/signup", handlers.SignUpHandler)
