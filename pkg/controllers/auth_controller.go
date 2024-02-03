@@ -41,7 +41,6 @@ func AuthenticateUser(user models.User) (*models.User, bool, error) {
 	db := database.GetDB()
 	userRepo := repository.NewUserRepository(db)
 	// Retrieve the user from the database based on the provided email
-	// Retrieve the user from the database based on the provided email
 	storedUser, err := userRepo.GetUserByEmail(user.Email)
 	if err != nil {
 		return nil, false, err
@@ -82,7 +81,7 @@ func generateRefreshToken(user models.User) (string, error) {
 }
 
 func GenerateTokens(user models.User) (string, string, error) {
-	accessToken, err := generateRefreshToken(user)
+	accessToken, err := generateAccessToken(user)
 	if err != nil {
 		return "", "", err
 	}
@@ -92,4 +91,84 @@ func GenerateTokens(user models.User) (string, string, error) {
 		return "", "", err
 	}
 	return accessToken, refreshToken, nil
+}
+
+// RefreshToken refreshes the access token using a valid refresh token
+func RefreshToken(refreshToken string) (string, string, error) {
+	// Validate the refresh token (you should have your own validation logic)
+	if isValidRefreshToken(refreshToken) {
+		// If the refresh token is valid, generate a new access token and refresh token pair
+		user, err := getUserFromRefreshToken(refreshToken)
+		if err != nil {
+			return "", "", err
+		}
+
+		accessToken, newRefreshToken, err := GenerateTokens(*user)
+		if err != nil {
+			return "", "", err
+		}
+
+		return accessToken, newRefreshToken, nil
+	}
+
+	// If the refresh token is invalid, return an error
+	return "", "", fmt.Errorf("invalid refresh token")
+}
+
+// isValidRefreshToken checks if the refresh token is valid (e.g., not expired, not revoked)
+func isValidRefreshToken(refreshToken string) bool {
+	// Parse the refresh token
+	token, err := jwt.Parse(refreshToken, func(token *jwt.Token) (interface{}, error) {
+		// Validate the signing method and return the secret key
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("invalid signing method")
+		}
+		return jwtSecret, nil
+	})
+
+	// Check for parsing errors
+	if err != nil || !token.Valid {
+		return false
+	}
+
+	return true
+}
+
+func getUserFromRefreshToken(refreshToken string) (*models.User, error) {
+	// Parse the refresh token
+	token, err := jwt.Parse(refreshToken, func(token *jwt.Token) (interface{}, error) {
+		// Validate the signing method and return the secret key
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("invalid signing method")
+		}
+		return jwtSecret, nil
+	})
+
+	// Check for parsing errors
+	if err != nil || !token.Valid {
+		return nil, fmt.Errorf("invalid refresh token")
+	}
+
+	// Extract user information from the token
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok {
+		return nil, fmt.Errorf("error extracting claims from refresh token")
+	}
+
+	// Retrieve user email from claims
+	email, ok := claims["sub"].(string)
+	if !ok {
+		return nil, fmt.Errorf("error extracting user email from refresh token")
+	}
+
+	// In a real-world scenario, you would query the database to get the user based on the email
+	// Here, we're creating a dummy user for demonstration purposes
+	db := database.GetDB()
+	userRepo := repository.NewUserRepository(db)
+	user, err := userRepo.GetUserByEmail(email)
+	if err != nil {
+		return nil, err
+	}
+
+	return user, nil
 }

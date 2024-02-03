@@ -55,3 +55,36 @@ func SignInHandler(c *gin.Context) {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
 	}
 }
+
+// RefreshTokenRequest is a struct to represent the request body for the refresh token endpoint
+type RefreshTokenRequest struct {
+	RefreshToken string `json:"refresh_token" binding:"required"`
+}
+
+// RefreshTokenHandler handles refreshing access tokens
+func RefreshTokenHandler(c *gin.Context) {
+	var requestBody RefreshTokenRequest
+	if err := c.ShouldBindJSON(&requestBody); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request payload"})
+		return
+	}
+
+	refreshToken := requestBody.RefreshToken
+	if refreshToken == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Missing refresh token"})
+		return
+	}
+
+	// Validate the refresh token and get a new pair of access and refresh tokens
+	accessToken, newRefreshToken, err := controllers.RefreshToken(refreshToken)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid refresh token"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message":       "Token refreshed successfully",
+		"access_token":  accessToken,
+		"refresh_token": newRefreshToken,
+	})
+}

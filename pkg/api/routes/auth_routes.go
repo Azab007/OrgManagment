@@ -13,6 +13,7 @@ func SetupUserRoutes(router *gin.Engine) {
 		// Route for user signup
 		userGroup.POST("/signup", handlers.SignUpHandler)
 		userGroup.POST("/signin", handlers.SignInHandler)
+		userGroup.POST("/refresh", handlers.RefreshTokenHandler)
 
 	}
 }
