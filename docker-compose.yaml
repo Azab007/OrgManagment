@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo
+    container_name: org_management_mongodb
+    ports:
+      - "27017:27017"
+    networks:
+      - app-network
+
+  org_management:
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile
+    container_name: org_management_app
+    ports:
+      - "8080:8080"
+    depends_on:
+      - mongodb
+    networks:
+      - app-network
+    environment:
+      - MONGO_CONNECTION_STRING=mongodb://mongodb:27017
+
+networks:
+  app-network:
+    driver: bridge
