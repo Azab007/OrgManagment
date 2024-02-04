@@ -27,6 +27,7 @@ func SignUpHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "User signed up successfully"})
 }
 
+// SignInHandler handles user signup requests
 func SignInHandler(c *gin.Context) {
 	var user models.User
 	if err := c.ShouldBindJSON(&user); err != nil {

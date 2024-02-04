@@ -48,6 +48,9 @@ func GetOrganizationByID(c *gin.Context) {
 	}
 
 }
+
+// GetAllOrganizations
+
 func GetAllOrganizations(c *gin.Context) {
 
 	orgs, err := controllers.GetAllOrganizationController()
@@ -70,6 +73,7 @@ func GetAllOrganizations(c *gin.Context) {
 	c.JSON(http.StatusOK, res)
 }
 
+// Update Organization
 func UpdateOrganization(c *gin.Context) {
 	orgID := c.Param("id")
 	var updatedOrg models.Organization
@@ -93,6 +97,7 @@ func UpdateOrganization(c *gin.Context) {
 	c.JSON(http.StatusOK, responseOrg)
 }
 
+// Delete Organization
 func DeleteOrganization(c *gin.Context) {
 	orgID := c.Param("id")
 	err := controllers.DeleteOrganizationController(orgID)
@@ -103,6 +108,9 @@ func DeleteOrganization(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"message": "Organization Deleted successfully"})
 }
+
+// Invite a member to organization using email
+
 func InviteToOrganization(c *gin.Context) {
 	orgID := c.Param("id")
 	// Parse member information from the request (example: using JSON)

@@ -161,8 +161,6 @@ func getUserFromRefreshToken(refreshToken string) (*models.User, error) {
 		return nil, fmt.Errorf("error extracting user email from refresh token")
 	}
 
-	// In a real-world scenario, you would query the database to get the user based on the email
-	// Here, we're creating a dummy user for demonstration purposes
 	db := database.GetDB()
 	userRepo := repository.NewUserRepository(db)
 	user, err := userRepo.GetUserByEmail(email)
