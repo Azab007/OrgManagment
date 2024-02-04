@@ -15,7 +15,8 @@ func main() {
 
 	// Set up all API routes
 	routes.SetupUserRoutes(r)
+	routes.SetupOrganizationRoutes(r)
 
 	// Start the server
-	r.Run(":8000")
+	r.Run(":8080")
 }
