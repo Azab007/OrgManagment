@@ -6,24 +6,28 @@ import (
 	"OrgManagementApp/pkg/database/mongodb/repository"
 	"errors"
 	"fmt"
+
+	"github.com/google/uuid"
 )
 
-func CreateOrganizationController(org models.Organization) error {
+func CreateOrganizationController(org models.Organization) (string, error) {
 	// Validate org data
-	if org.Name == "" || org.Description == "" || org.ID == "" {
-		return fmt.Errorf("Invalid organization data")
+	if org.Name == "" || org.Description == "" {
+		return "", fmt.Errorf("Invalid organization data")
 	}
+	org.ID = uuid.NewString()
 	db := database.GetDB()
 	orgRepo := repository.NewOrganizationRepository(db)
 
 	err := orgRepo.CreateOrganization(&org)
 	if err != nil {
-		return fmt.Errorf("Error creating organization: %v", err)
+		return "", fmt.Errorf("Error creating organization: %v", err)
 	}
 
-	return nil
+	return org.ID, nil
 
 }
+
 func GetOrganizationByIDController(orgID string) (*models.Organization, error) {
 	db := database.GetDB()
 	orgRepo := repository.NewOrganizationRepository(db)

@@ -11,8 +11,8 @@ type Member struct {
 
 // Organization represents an organization entity
 type Organization struct {
-	ID          string   `json:"id"`
+	ID          string   `json:"organization_id"`
 	Name        string   `json:"name"`
 	Description string   `json:"description"`
-	Members     []Member `json:"members"`
+	Members     []Member `json:"organization_members"`
 }

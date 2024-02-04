@@ -1,11 +1,13 @@
 package utils
 
 import (
+	"OrgManagementApp/pkg/database/mongodb/models"
 	"errors"
 	"fmt"
 	"strings"
 
 	"github.com/dgrijalva/jwt-go"
+	"github.com/gin-gonic/gin"
 )
 
 // ExtractBearerToken extracts the Bearer token from the Authorization header
@@ -50,4 +52,51 @@ func VerifyAccessToken(accessToken string) (string, error) {
 	}
 
 	return email, nil
+}
+
+func extractEmailFromToken(tokenString string) (string, error) {
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+
+		return []byte("somesecretjwtcode"), nil
+	})
+
+	if err != nil {
+		return "", err
+	}
+
+	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+		// Extract the email from the claims
+		if email, ok := claims["sub"].(string); ok {
+			return email, nil
+		}
+	}
+
+	return "", fmt.Errorf("unable to extract email from token")
+}
+func ExtractEmailFromTokenContext(c *gin.Context) (string, error) {
+	tokenString, err := getTokenFromContext(c)
+	if err != nil {
+		return "", err
+	}
+
+	return extractEmailFromToken(tokenString)
+}
+
+func getTokenFromContext(c *gin.Context) (string, error) {
+	tokenString := c.GetHeader("Authorization")
+	tokenString = tokenString[7:]
+	// Convert to string
+	tokenStr := tokenString
+
+	return tokenStr, nil
+}
+
+func IsUserIDInMembers(org models.Organization, emailToCheck string) bool {
+
+	for _, member := range org.Members {
+		if member.Email == emailToCheck {
+			return true
+		}
+	}
+	return false
 }

@@ -3,6 +3,7 @@ package handlers
 import (
 	"OrgManagementApp/pkg/controllers"
 	"OrgManagementApp/pkg/database/mongodb/models"
+	"OrgManagementApp/pkg/utils"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -18,26 +19,34 @@ func CreateOrganization(c *gin.Context) {
 	}
 
 	// Call the controller method to handle user signup
-	err := controllers.CreateOrganizationController(newOrganization)
+	orgId, err := controllers.CreateOrganizationController(newOrganization)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Organization Created successfully"})
+	c.JSON(http.StatusOK, gin.H{"organization_id": orgId})
 }
 
 // GetOrganizationByIDHandler retrieves an organization by ID
 func GetOrganizationByID(c *gin.Context) {
 	orgID := c.Param("id")
-
 	org, err := controllers.GetOrganizationByIDController(orgID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+	email, err := utils.ExtractEmailFromTokenContext(c)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	if utils.IsUserIDInMembers(*org, email) {
+		c.JSON(http.StatusOK, org)
+	} else {
+		c.JSON(http.StatusOK, nil)
+	}
 
-	c.JSON(http.StatusOK, org)
 }
 func GetAllOrganizations(c *gin.Context) {
 
@@ -46,8 +55,19 @@ func GetAllOrganizations(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+	res := make([]models.Organization, 0)
+	email, err := utils.ExtractEmailFromTokenContext(c)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	for _, org := range orgs {
+		if utils.IsUserIDInMembers(org, email) {
+			res = append(res, org)
+		}
 
-	c.JSON(http.StatusOK, orgs)
+	}
+	c.JSON(http.StatusOK, res)
 }
 
 func UpdateOrganization(c *gin.Context) {
@@ -58,13 +78,19 @@ func UpdateOrganization(c *gin.Context) {
 		return
 	}
 	updatedOrg.ID = orgID
+	updatedOrg.Members = nil
+
 	err := controllers.UpdateOrganizationController(&updatedOrg)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-
-	c.JSON(http.StatusOK, updatedOrg)
+	responseOrg := models.Organization{
+		ID:          updatedOrg.ID,
+		Name:        updatedOrg.Name,
+		Description: updatedOrg.Description,
+	}
+	c.JSON(http.StatusOK, responseOrg)
 }
 
 func DeleteOrganization(c *gin.Context) {
@@ -90,5 +116,6 @@ func InviteToOrganization(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+	c.JSON(http.StatusOK, gin.H{"message": "Successful invitation"})
 
 }
